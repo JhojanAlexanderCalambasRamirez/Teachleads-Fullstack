@@ -1,8 +1,8 @@
 {
   "name": "prueba-tecnica-frontend",
   "version": "1.0.0",
-  "description": "Frontend Prueba Técnica TeachLeads - Quasar + Vue 3",
-  "productName": "TeachLeads App",
+  "description": "Frontend Prueba Técnica TechLeads - Quasar + Vue 3",
+  "productName": "TechLeads App",
   "scripts": {
     "dev": "quasar dev",
     "build": "quasar build",

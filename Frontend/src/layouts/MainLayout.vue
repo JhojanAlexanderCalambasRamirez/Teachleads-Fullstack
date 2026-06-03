@@ -5,7 +5,7 @@
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
         <q-toolbar-title>
           <q-icon name="business_center" class="q-mr-sm" />
-          TeachLeads
+          TechLeads
         </q-toolbar-title>
         <div class="q-mr-md text-caption">
           {{ authStore.nombre }} ({{ authStore.rol }})

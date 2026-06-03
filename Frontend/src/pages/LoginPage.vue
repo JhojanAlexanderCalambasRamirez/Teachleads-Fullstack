@@ -3,7 +3,7 @@
     <q-card class="login-card shadow-8">
       <q-card-section class="bg-primary text-white text-center q-py-lg">
         <q-icon name="business_center" size="3rem" />
-        <div class="text-h5 q-mt-sm">TeachLeads</div>
+        <div class="text-h5 q-mt-sm">TechLeads</div>
         <div class="text-caption">Sistema de Gestión Empresarial</div>
       </q-card-section>
 

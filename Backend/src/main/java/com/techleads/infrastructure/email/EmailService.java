@@ -19,11 +19,11 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(destinatario);
-            helper.setSubject("Reporte de Inventario - TeachLeads");
+            helper.setSubject("Reporte de Inventario - TechLeads");
             helper.setText(
                     "<h2>Reporte de Inventario</h2>" +
                     "<p>Adjunto encontrará el reporte de inventario solicitado.</p>" +
-                    "<p>Generado por el sistema TeachLeads.</p>",
+                    "<p>Generado por el sistema TechLeads.</p>",
                     true);
 
             helper.addAttachment("inventario.pdf",

@@ -1,4 +1,4 @@
-# Prueba Técnica TeachLeads — Full Stack Java Spring Boot + Vue.js
+# Prueba Técnica TechLeads — Full Stack Java Spring Boot + Vue.js
 
 Sistema de gestión empresarial con inventario, productos multi-moneda y envío de reportes PDF por email.
 
@@ -57,14 +57,14 @@ Sistema de gestión empresarial con inventario, productos multi-moneda y envío 
 
 **Mac / Linux:**
 ```bash
-git clone https://github.com/JhojanAlexanderCalambasRamirez/Teachleads-Fullstack.git
-cd prueba-tecnica-TeachLeads
+git clone https://github.com/JhojanAlexanderCalambasRamirez/Techleads-Fullstack.git
+cd prueba-tecnica-TechLeads
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/JhojanAlexanderCalambasRamirez/Teachleads-Fullstack.git
-cd prueba-tecnica-TeachLeads
+git clone https://github.com/JhojanAlexanderCalambasRamirez/Techleads-Fullstack.git
+cd prueba-tecnica-TechLeads
 ```
 
 ---
