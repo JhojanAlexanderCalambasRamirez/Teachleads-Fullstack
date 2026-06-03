@@ -5,6 +5,9 @@ RetoPrático.pdf
 
 # ─── Backend — Java / Maven ──────────────────────────────────────
 Backend/target/
+Backend/node_modules/
+Backend/package.json
+Backend/package-lock.json
 Backend/.mvn/wrapper/maven-wrapper.jar
 Backend/*.log
 Backend/backend.log

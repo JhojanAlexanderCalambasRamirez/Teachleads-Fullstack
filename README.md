@@ -57,13 +57,13 @@ Sistema de gestión empresarial con inventario, productos multi-moneda y envío 
 
 **Mac / Linux:**
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/JhojanAlexanderCalambasRamirez/Teachleads-Fullstack.git
 cd prueba-tecnica-TeachLeads
 ```
 
 **Windows (PowerShell):**
 ```powershell
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/JhojanAlexanderCalambasRamirez/Teachleads-Fullstack.git
 cd prueba-tecnica-TeachLeads
 ```
 
@@ -190,18 +190,18 @@ if ($pid8080) { taskkill /PID $pid8080 /F }
 ```
 Backend/src/main/java/com/techleads/
 ├── domain/
-│   ├── model/          ← Entidades puras Java (sin dependencias de framework)
-│   └── port/           ← Interfaces de repositorios (contratos)
+│   ├── model/          <- Entidades puras Java (sin dependencias de framework)
+│   └── port/           <- Interfaces de repositorios (contratos)
 ├── application/
-│   ├── usecase/        ← Lógica de negocio por dominio
-│   └── dto/            ← Request / Response DTOs
+│   ├── usecase/        <- Lógica de negocio por dominio
+│   └── dto/            <- Request / Response DTOs
 └── infrastructure/
-    ├── persistence/    ← JPA entities + Spring Data + adapters
-    ├── web/            ← REST controllers + exception handler
-    ├── security/       ← JWT filter + Spring Security
-    ├── pdf/            ← Generación PDF (iText 8)
-    ├── email/          ← Envío email (JavaMailSender)
-    └── config/         ← Beans de configuración
+    ├── persistence/    <- JPA entities + Spring Data + adapters
+    ├── web/            <- REST controllers + exception handler
+    ├── security/       <- JWT filter + Spring Security
+    ├── pdf/            <- Generación PDF (iText 8)
+    ├── email/          <- Envío email (JavaMailSender)
+    └── config/         <- Beans de configuración
 ```
 
 **Principios aplicados:** SOLID, inversión de dependencias (domain sin dependencias de Spring/JPA), alta cohesión, bajo acoplamiento.
@@ -214,11 +214,11 @@ Backend/src/main/java/com/techleads/
 empresa          (nit PK, nombre, direccion, telefono)
 categoria        (id PK, nombre)
 producto         (codigo PK, nombre, caracteristicas, empresa_nit FK)
-producto_precio  (id PK, producto_codigo FK, moneda, precio)     ← multi-divisa
-producto_categoria (producto_codigo FK, categoria_id FK)         ← N:M
+producto_precio  (id PK, producto_codigo FK, moneda, precio)     <- multi-divisa
+producto_categoria (producto_codigo FK, categoria_id FK)         <- N:M
 cliente          (id PK, nombre, correo)
 orden            (id PK, cliente_id FK, fecha, estado)
-orden_producto   (orden_id FK, producto_codigo FK, cantidad)     ← N:M
+orden_producto   (orden_id FK, producto_codigo FK, cantidad)     <- N:M
 inventario       (id PK, empresa_nit FK, producto_codigo FK, cantidad)
 usuario          (id PK, correo, password_hash, nombre, rol, activo)
 ```
@@ -270,12 +270,12 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 
 | Funcionalidad | ADMIN | EXTERNO |
 |--------------|:-----:|:-------:|
-| Ver empresas | ✅ | ✅ |
-| Crear / editar / eliminar empresa | ✅ | ❌ |
-| Gestionar productos | ✅ | ❌ |
-| Gestionar inventario | ✅ | ❌ |
-| Descargar PDF inventario | ✅ | ❌ |
-| Enviar PDF por email | ✅ | ❌ |
+| Ver empresas | Si | Si |
+| Crear / editar / eliminar empresa | Si | No |
+| Gestionar productos | Si | No |
+| Gestionar inventario | Si | No |
+| Descargar PDF inventario | Si | No |
+| Enviar PDF por email | Si | No |
 
 ---
 
