@@ -19,13 +19,8 @@ spring:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-<<<<<<< HEAD
-    username: Correo
-    password: Contraseña
-=======
-    username: 
-    password: 
->>>>>>> 5f1ec14 (feat: implementación completa full stack - Clean Architecture, JWT, PDF/email con selección granular de inventario)
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:

@@ -223,6 +223,23 @@ inventario       (id PK, empresa_nit FK, producto_codigo FK, cantidad)
 usuario          (id PK, correo, password_hash, nombre, rol, activo)
 ```
 
+### Tablas con UI vs solo modelo ER
+
+| Tabla | UI | Nota |
+|---|---|---|
+| `empresa` | ✅ | CRUD completo (ADMIN), solo lectura (EXTERNO) |
+| `producto` | ✅ | CRUD completo (ADMIN) |
+| `producto_precio` | ✅ | Gestionada dentro del formulario de Productos |
+| `producto_categoria` | ✅ | Gestionada dentro del formulario de Productos |
+| `categoria` | ✅ | Pre-seeded, usable como selector en Productos |
+| `inventario` | ✅ | CRUD + exportación PDF/email (ADMIN) |
+| `usuario` | ✅ | Pre-seeded (admin y externo) |
+| `cliente` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
+| `orden` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
+| `orden_producto` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
+
+> `cliente`, `orden` y `orden_producto` existen en el esquema porque el PDF punto f) las exige en el modelo entidad-relación. No hay vistas asociadas porque ninguno de los puntos a-d del PDF las menciona como funcionalidad requerida.
+
 ---
 
 ## Endpoints REST
