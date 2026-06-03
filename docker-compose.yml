@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: techleads_postgres
+    environment:
+      POSTGRES_DB: techleads_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - techleads_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  techleads_pgdata:

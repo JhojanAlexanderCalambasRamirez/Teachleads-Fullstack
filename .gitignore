@@ -1,0 +1,95 @@
+# ─── Archivos personales / locales ───────────────────────────────
+GUIA_LOCAL.md
+RetoPrático.pdf
+*.pdf
+
+# ─── Backend — Java / Maven ──────────────────────────────────────
+Backend/target/
+Backend/.mvn/wrapper/maven-wrapper.jar
+Backend/*.log
+Backend/backend.log
+!Backend/.mvn/wrapper/maven-wrapper.properties
+
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# Spring Boot
+Backend/src/main/resources/application-local.yml
+Backend/src/main/resources/application-local.properties
+
+# ─── Frontend — Node.js / Quasar ─────────────────────────────────
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.quasar/
+Frontend/.cache/
+Frontend/frontend.log
+Frontend/*.log
+
+# npm / yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# ─── IDEs ────────────────────────────────────────────────────────
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code (ignorar configuraciones personales, mantener extensiones recomendadas)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+!.vscode/extensions.json
+
+# Eclipse
+.classpath
+.project
+.settings/
+*.launch
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ─── Sistema operativo ───────────────────────────────────────────
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+# ─── Seguridad — NUNCA subir credenciales ────────────────────────
+*.env
+.env
+.env.local
+.env.production
+secrets.yml
+secrets.properties
