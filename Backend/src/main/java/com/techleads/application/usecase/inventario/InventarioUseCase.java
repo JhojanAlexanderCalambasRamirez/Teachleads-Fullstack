@@ -59,6 +59,12 @@ public class InventarioUseCase {
                 .collect(Collectors.toList());
     }
 
+    public List<InventarioResponse> listarPorIds(List<Long> ids) {
+        return inventarioRepository.findByIds(ids).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     public void eliminar(Long id) {
         inventarioRepository.deleteById(id);
     }

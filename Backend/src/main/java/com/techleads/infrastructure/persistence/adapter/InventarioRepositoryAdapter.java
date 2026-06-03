@@ -56,6 +56,11 @@ public class InventarioRepositoryAdapter implements InventarioRepository {
     }
 
     @Override
+    public List<InventarioItem> findByIds(List<Long> ids) {
+        return jpa.findAllById(ids).stream().map(this::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
     public void deleteById(Long id) {
         jpa.deleteById(id);
     }

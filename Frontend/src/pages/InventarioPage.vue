@@ -1,21 +1,23 @@
 <template>
   <q-page class="q-pa-md">
+    <!-- Header -->
     <div class="row items-center q-mb-md">
       <div class="col">
         <div class="text-h5">Inventario</div>
-        <div class="text-caption text-grey-6">Productos por empresa en inventario</div>
+        <div class="text-caption text-grey-6">
+          Productos por empresa
+          <span v-if="selectedRows.length" class="text-primary q-ml-sm">
+            · {{ selectedRows.length }} seleccionado(s)
+          </span>
+        </div>
       </div>
       <div class="col-auto q-gutter-sm">
-        <q-btn color="secondary" icon="download" label="Descargar PDF"
-          @click="handleDownloadPdf" :loading="downloadingPdf" />
-        <q-btn color="orange" icon="email" label="Enviar por Email"
-          @click="emailDialogOpen = true" />
-        <q-btn color="primary" icon="add" label="Agregar al inventario"
-          @click="addDialogOpen = true" />
+        <q-btn color="primary" icon="add" label="Agregar" @click="addDialogOpen = true" />
       </div>
     </div>
 
-    <div class="q-mb-md">
+    <!-- Filtro empresa -->
+    <div class="row items-center q-mb-md q-gutter-sm">
       <q-select
         v-model="filtroEmpresa"
         :options="empresaStore.empresas"
@@ -23,14 +25,93 @@
         option-label="nombre"
         label="Filtrar por empresa"
         outlined
+        dense
         clearable
         emit-value
         map-options
-        style="max-width: 300px"
-        @update:model-value="inventarioStore.fetchAll($event ?? undefined)"
+        style="min-width: 250px"
+        @update:model-value="cargarInventario"
+      />
+      <q-btn
+        v-if="selectedRows.length"
+        flat
+        dense
+        icon="deselect"
+        label="Limpiar selección"
+        color="grey-6"
+        @click="selectedRows = []"
       />
     </div>
 
+    <!-- Acciones PDF / Email - contextuales -->
+    <div class="row q-mb-md q-gutter-sm">
+      <q-btn-group outline>
+        <q-btn
+          outline
+          color="secondary"
+          icon="download"
+          :label="selectedRows.length ? `Descargar selección (${selectedRows.length})` : 'Descargar todo'"
+          @click="handleDownloadPdf"
+          :loading="downloadingPdf"
+        />
+        <q-btn
+          outline
+          color="secondary"
+          icon="expand_more"
+          @click="pdfMenuOpen = true"
+        >
+          <q-menu v-model="pdfMenuOpen">
+            <q-list style="min-width: 200px">
+              <q-item clickable v-close-popup @click="handleDownloadPdf(false)">
+                <q-item-section avatar><q-icon name="download_for_offline" color="secondary" /></q-item-section>
+                <q-item-section>Descargar todo</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="handleDownloadPdf(true)" :disable="!selectedRows.length">
+                <q-item-section avatar><q-icon name="check_box" color="primary" /></q-item-section>
+                <q-item-section>
+                  Solo seleccionados
+                  <q-item-label caption v-if="!selectedRows.length">Selecciona filas primero</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+      </q-btn-group>
+
+      <q-btn-group outline>
+        <q-btn
+          outline
+          color="orange"
+          icon="email"
+          :label="selectedRows.length ? `Enviar selección (${selectedRows.length})` : 'Enviar todo'"
+          @click="openEmailDialog(false)"
+        />
+        <q-btn
+          outline
+          color="orange"
+          icon="expand_more"
+          @click="emailMenuOpen = true"
+        >
+          <q-menu v-model="emailMenuOpen">
+            <q-list style="min-width: 200px">
+              <q-item clickable v-close-popup @click="openEmailDialog(false)">
+                <q-item-section avatar><q-icon name="mail_outline" color="orange" /></q-item-section>
+                <q-item-section>Enviar todo por email</q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="openEmailDialog(true)" :disable="!selectedRows.length">
+                <q-item-section avatar><q-icon name="mark_email_read" color="primary" /></q-item-section>
+                <q-item-section>
+                  Enviar seleccionados
+                  <q-item-label caption v-if="!selectedRows.length">Selecciona filas primero</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
+      </q-btn-group>
+    </div>
+
+    <!-- Tabla con selección -->
     <q-table
       :rows="inventarioStore.items"
       :columns="columns"
@@ -38,6 +119,8 @@
       :loading="inventarioStore.loading"
       flat
       bordered
+      selection="multiple"
+      v-model:selected="selectedRows"
     >
       <template #body-cell-acciones="props">
         <q-td :props="props">
@@ -47,7 +130,7 @@
       </template>
     </q-table>
 
-    <!-- Agregar producto al inventario -->
+    <!-- Dialog agregar -->
     <q-dialog v-model="addDialogOpen" persistent>
       <q-card style="min-width: 400px">
         <q-card-section class="bg-primary text-white">
@@ -58,7 +141,7 @@
             option-value="nit" option-label="nombre" label="Empresa *"
             outlined emit-value map-options
             :rules="[val => !!val || 'Requerido']" />
-          <q-select v-model="addForm.productoCodigo" :options="productoOptions"
+          <q-select v-model="addForm.productoCodigo" :options="productoStore.productos"
             option-value="codigo" option-label="nombre" label="Producto *"
             outlined emit-value map-options
             :rules="[val => !!val || 'Requerido']" />
@@ -75,21 +158,39 @@
 
     <!-- Dialog enviar email -->
     <q-dialog v-model="emailDialogOpen" persistent>
-      <q-card style="min-width: 400px">
+      <q-card style="min-width: 420px">
         <q-card-section class="bg-orange text-white">
-          <div class="text-h6">Enviar Inventario por Email</div>
+          <div class="text-h6">
+            <q-icon name="email" class="q-mr-sm" />
+            Enviar Inventario por Email
+          </div>
         </q-card-section>
         <q-card-section class="q-gutter-md q-pt-lg">
           <q-input v-model="emailForm.destinatario" label="Correo destinatario *"
             type="email" outlined
             :rules="[val => !!val || 'Requerido', val => /.+@.+\..+/.test(val) || 'Email inválido']" />
-          <q-select v-model="emailForm.empresaNit" :options="empresaStore.empresas"
-            option-value="nit" option-label="nombre" label="Filtrar empresa (opcional)"
-            outlined emit-value map-options clearable />
+
+          <q-banner
+            v-if="emailForm.soloSeleccionados && selectedRows.length"
+            class="bg-blue-1 text-blue-9 rounded-borders"
+            dense
+          >
+            <template #avatar><q-icon name="check_box" /></template>
+            Se enviarán <strong>{{ selectedRows.length }} item(s) seleccionado(s)</strong>
+          </q-banner>
+          <q-banner
+            v-else-if="!emailForm.soloSeleccionados"
+            class="bg-grey-2 rounded-borders"
+            dense
+          >
+            <template #avatar><q-icon name="inventory_2" /></template>
+            Se enviará <strong>todo el inventario</strong>
+            {{ filtroEmpresa ? `de la empresa filtrada` : '' }}
+          </q-banner>
         </q-card-section>
         <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Cancelar" v-close-popup />
-          <q-btn color="orange" label="Enviar" :loading="sendingEmail" @click="handleSendEmail" />
+          <q-btn color="orange" label="Enviar PDF" :loading="sendingEmail" @click="handleSendEmail" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -97,9 +198,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useInventarioStore } from 'src/stores/inventario.store'
+import { useInventarioStore, type InventarioItem } from 'src/stores/inventario.store'
 import { useEmpresaStore } from 'src/stores/empresa.store'
 import { useProductoStore } from 'src/stores/producto.store'
 
@@ -114,11 +215,12 @@ const saving = ref(false)
 const sendingEmail = ref(false)
 const downloadingPdf = ref(false)
 const filtroEmpresa = ref<string | null>(null)
+const selectedRows = ref<InventarioItem[]>([])
+const pdfMenuOpen = ref(false)
+const emailMenuOpen = ref(false)
 
 const addForm = reactive({ empresaNit: '', productoCodigo: '', cantidad: 1 })
-const emailForm = reactive({ destinatario: '', empresaNit: null as string | null })
-
-const productoOptions = computed(() => productoStore.productos)
+const emailForm = reactive({ destinatario: '', soloSeleccionados: false })
 
 const columns = [
   { name: 'empresaNit', label: 'NIT Empresa', field: 'empresaNit', sortable: true, align: 'left' as const },
@@ -138,6 +240,17 @@ onMounted(async () => {
   ])
 })
 
+function cargarInventario() {
+  selectedRows.value = []
+  inventarioStore.fetchAll(filtroEmpresa.value ?? undefined)
+}
+
+function openEmailDialog(soloSeleccionados: boolean) {
+  emailForm.destinatario = ''
+  emailForm.soloSeleccionados = soloSeleccionados
+  emailDialogOpen.value = true
+}
+
 async function handleAdd() {
   saving.value = true
   try {
@@ -153,10 +266,18 @@ async function handleAdd() {
   }
 }
 
-async function handleDownloadPdf() {
+async function handleDownloadPdf(soloSeleccionados?: boolean) {
+  const usarSeleccion = soloSeleccionados === true ||
+    (soloSeleccionados === undefined && selectedRows.value.length > 0)
+
+  const ids = usarSeleccion ? selectedRows.value.map(r => r.id) : undefined
+
   downloadingPdf.value = true
   try {
-    await inventarioStore.descargarPdf(filtroEmpresa.value ?? undefined)
+    await inventarioStore.descargarPdf(
+      ids,
+      ids ? undefined : (filtroEmpresa.value ?? undefined)
+    )
     $q.notify({ type: 'positive', message: 'PDF descargado' })
   } catch {
     $q.notify({ type: 'negative', message: 'Error generando PDF' })
@@ -168,11 +289,19 @@ async function handleDownloadPdf() {
 async function handleSendEmail() {
   sendingEmail.value = true
   try {
-    await inventarioStore.enviarPdf(emailForm.destinatario, emailForm.empresaNit ?? undefined)
+    const ids = emailForm.soloSeleccionados
+      ? selectedRows.value.map(r => r.id)
+      : undefined
+
+    await inventarioStore.enviarPdf(
+      emailForm.destinatario,
+      ids,
+      ids ? undefined : (filtroEmpresa.value ?? undefined)
+    )
     $q.notify({ type: 'positive', message: `Email enviado a ${emailForm.destinatario}` })
     emailDialogOpen.value = false
   } catch {
-    $q.notify({ type: 'negative', message: 'Error enviando email' })
+    $q.notify({ type: 'negative', message: 'Error enviando email. Verifica credenciales de correo.' })
   } finally {
     sendingEmail.value = false
   }
@@ -186,6 +315,7 @@ function confirmDelete(id: number) {
   }).onOk(async () => {
     try {
       await inventarioStore.eliminar(id)
+      selectedRows.value = selectedRows.value.filter(r => r.id !== id)
       $q.notify({ type: 'positive', message: 'Item eliminado' })
     } catch {
       $q.notify({ type: 'negative', message: 'Error al eliminar' })

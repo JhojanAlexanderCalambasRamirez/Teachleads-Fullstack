@@ -250,13 +250,18 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 | DELETE | `/api/productos/{codigo}` | ADMIN |
 
 ### Inventario
-| Método | Endpoint | Acceso |
-|--------|----------|--------|
-| GET | `/api/inventario?empresaNit=` | ADMIN |
-| POST | `/api/inventario` | ADMIN |
-| DELETE | `/api/inventario/{id}` | ADMIN |
-| GET | `/api/inventario/pdf` | ADMIN |
-| POST | `/api/inventario/enviar-pdf` | ADMIN |
+| Método | Endpoint | Parámetros | Acceso |
+|--------|----------|------------|--------|
+| GET | `/api/inventario` | `?empresaNit=` (opcional) | ADMIN |
+| POST | `/api/inventario` | body: `{empresaNit, productoCodigo, cantidad}` | ADMIN |
+| DELETE | `/api/inventario/{id}` | — | ADMIN |
+| GET | `/api/inventario/pdf` | `?ids=1,2,3` o `?empresaNit=` (opcionales) | ADMIN |
+| POST | `/api/inventario/enviar-pdf` | body: `{destinatario, ids?, empresaNit?}` | ADMIN |
+
+**Lógica de filtrado PDF/Email (prioridad):**
+1. Si `ids` presentes → usa solo esos registros
+2. Si `empresaNit` presente → filtra por empresa
+3. Sin parámetros → exporta todo el inventario
 
 ### Categorías
 | Método | Endpoint | Acceso |
@@ -326,3 +331,4 @@ npm run build
 | Tabla `producto_precio` normalizada | Soporte N monedas por producto sin columnas dinámicas |
 | Pinia como store | Reactividad granular, mejor DX vs Vuex en Vue 3 |
 | Proxy devServer | Frontend desacoplado del backend, sin CORS en desarrollo |
+| Selección granular en inventario | PDF/email con selección de filas individuales, por empresa, o todo |

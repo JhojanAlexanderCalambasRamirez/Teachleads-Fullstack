@@ -47,11 +47,10 @@ public class InventarioController {
 
     @GetMapping("/pdf")
     public ResponseEntity<byte[]> descargarPdf(
-            @RequestParam(required = false) String empresaNit) {
-        List<InventarioResponse> inventario = empresaNit != null
-                ? inventarioUseCase.listarPorEmpresa(empresaNit)
-                : inventarioUseCase.listar();
+            @RequestParam(required = false) String empresaNit,
+            @RequestParam(required = false) List<Long> ids) {
 
+        List<InventarioResponse> inventario = resolverInventario(ids, empresaNit);
         byte[] pdf = pdfService.generarInventarioPdf(inventario);
 
         return ResponseEntity.ok()
@@ -62,13 +61,19 @@ public class InventarioController {
 
     @PostMapping("/enviar-pdf")
     public ResponseEntity<ApiResponse<Void>> enviarPdf(@Valid @RequestBody SendPdfRequest request) {
-        List<InventarioResponse> inventario = request.getEmpresaNit() != null
-                ? inventarioUseCase.listarPorEmpresa(request.getEmpresaNit())
-                : inventarioUseCase.listar();
-
+        List<InventarioResponse> inventario = resolverInventario(request.getIds(), request.getEmpresaNit());
         byte[] pdf = pdfService.generarInventarioPdf(inventario);
         emailService.enviarInventarioPdf(request.getDestinatario(), pdf);
-
         return ResponseEntity.ok(ApiResponse.ok("PDF enviado a " + request.getDestinatario(), null));
+    }
+
+    private List<InventarioResponse> resolverInventario(List<Long> ids, String empresaNit) {
+        if (ids != null && !ids.isEmpty()) {
+            return inventarioUseCase.listarPorIds(ids);
+        }
+        if (empresaNit != null && !empresaNit.isBlank()) {
+            return inventarioUseCase.listarPorEmpresa(empresaNit);
+        }
+        return inventarioUseCase.listar();
     }
 }

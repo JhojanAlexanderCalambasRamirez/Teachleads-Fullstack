@@ -10,5 +10,6 @@ public interface InventarioRepository {
     List<InventarioItem> findAll();
     List<InventarioItem> findByEmpresaNit(String empresaNit);
     Optional<InventarioItem> findByEmpresaNitAndProductoCodigo(String empresaNit, String productoCodigo);
+    List<InventarioItem> findByIds(List<Long> ids);
     void deleteById(Long id);
 }

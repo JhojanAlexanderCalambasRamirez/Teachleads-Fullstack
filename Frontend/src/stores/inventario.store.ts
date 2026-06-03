@@ -45,12 +45,19 @@ export const useInventarioStore = defineStore('inventario', () => {
     items.value = items.value.filter((i) => i.id !== id)
   }
 
-  async function descargarPdf(empresaNit?: string) {
-    const params = empresaNit ? { empresaNit } : {}
+  async function descargarPdf(ids?: number[], empresaNit?: string) {
+    const params: Record<string, unknown> = {}
+    if (ids && ids.length > 0) {
+      params.ids = ids
+    } else if (empresaNit) {
+      params.empresaNit = empresaNit
+    }
+
     const response = await api.get('/inventario/pdf', {
       params,
       responseType: 'blob'
     })
+
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url
@@ -61,8 +68,14 @@ export const useInventarioStore = defineStore('inventario', () => {
     window.URL.revokeObjectURL(url)
   }
 
-  async function enviarPdf(destinatario: string, empresaNit?: string) {
-    await api.post('/inventario/enviar-pdf', { destinatario, empresaNit })
+  async function enviarPdf(destinatario: string, ids?: number[], empresaNit?: string) {
+    const body: Record<string, unknown> = { destinatario }
+    if (ids && ids.length > 0) {
+      body.ids = ids
+    } else if (empresaNit) {
+      body.empresaNit = empresaNit
+    }
+    await api.post('/inventario/enviar-pdf', body)
   }
 
   return { items, loading, fetchAll, agregar, eliminar, descargarPdf, enviarPdf }

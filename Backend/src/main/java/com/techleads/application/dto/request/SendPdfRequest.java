@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class SendPdfRequest {
 
@@ -12,4 +14,6 @@ public class SendPdfRequest {
     private String destinatario;
 
     private String empresaNit;
+
+    private List<Long> ids;
 }
