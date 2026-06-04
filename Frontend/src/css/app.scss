@@ -1,7 +1,11 @@
 // global styles
 
-// Prevent render-blocking fonts — show text immediately with fallback font
+// font-display: swap — show text immediately with fallback, swap when Roboto loads
 @font-face {
   font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
   font-display: swap;
+  src: url('/assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ-D-x-0Q06.woff2') format('woff2'),
+       url('/assets/flUhRq6tzZclQEJ-Vdg-IuiaDsNa-OUIwM9U8.woff') format('woff');
 }
