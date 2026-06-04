@@ -1,1 +1,7 @@
 // global styles
+
+// Prevent render-blocking fonts — show text immediately with fallback font
+@font-face {
+  font-family: 'Roboto';
+  font-display: swap;
+}
