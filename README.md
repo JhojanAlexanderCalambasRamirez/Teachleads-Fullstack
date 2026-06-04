@@ -51,6 +51,14 @@ docker-compose up -d
 
 ---
 
+## Demo en producción (AWS)
+
+**URL:** http://18.225.126.162
+
+Desplegado en AWS EC2 t3.micro (Ubuntu 26.04) — Spring Boot como servicio systemd + Nginx sirviendo el SPA + PostgreSQL local.
+
+---
+
 ## Instalación y ejecución
 
 ### 1. Clonar
@@ -220,16 +228,16 @@ usuario          (id PK, correo UNIQUE, password_hash, nombre, rol, activo)
 
 | Tabla | UI | Nota |
 |---|---|---|
-| `empresa` | ✅ | CRUD completo (ADMIN), solo lectura (EXTERNO) |
-| `producto` | ✅ | CRUD completo (ADMIN) con precios multi-moneda |
-| `producto_precio` | ✅ | Gestionada dentro del formulario de Productos |
-| `producto_categoria` | ✅ | Selector múltiple en formulario de Productos |
-| `categoria` | ✅ | Pre-seeded, selector en Productos |
-| `inventario` | ✅ | CRUD + PDF/email granular (ADMIN) |
-| `usuario` | ✅ | Pre-seeded — 2 usuarios (admin y externo) |
-| `cliente` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
-| `orden` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
-| `orden_producto` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
+| `empresa` | Si | CRUD completo (ADMIN), solo lectura (EXTERNO) |
+| `producto` | Si | CRUD completo (ADMIN) con precios multi-moneda |
+| `producto_precio` | Si | Gestionada dentro del formulario de Productos |
+| `producto_categoria` | Si | Selector múltiple en formulario de Productos |
+| `categoria` | Si | Pre-seeded, selector en Productos |
+| `inventario` | Si | CRUD + PDF/email granular (ADMIN) |
+| `usuario` | Si | Pre-seeded — 2 usuarios (admin y externo) |
+| `cliente` | No | Modelo ER requerido por PDF punto f), sin UI |
+| `orden` | No | Modelo ER requerido por PDF punto f), sin UI |
+| `orden_producto` | No | Modelo ER requerido por PDF punto f), sin UI |
 
 > Las tablas `cliente`, `orden` y `orden_producto` cumplen el requisito del modelo ER del punto f). No tienen UI porque ninguno de los puntos a-d del PDF define vistas para ellas.
 
@@ -283,12 +291,12 @@ usuario          (id PK, correo UNIQUE, password_hash, nombre, rol, activo)
 
 | Funcionalidad | ADMIN | EXTERNO |
 |--------------|:-----:|:-------:|
-| Ver empresas | ✅ | ✅ |
-| Crear / editar / eliminar empresa | ✅ | ❌ |
-| Gestionar productos | ✅ | ❌ |
-| Gestionar inventario | ✅ | ❌ |
-| Descargar PDF (todo / empresa / selección) | ✅ | ❌ |
-| Enviar PDF por email | ✅ | ❌ |
+| Ver empresas | Si | Si |
+| Crear / editar / eliminar empresa | Si | No |
+| Gestionar productos | Si | No |
+| Gestionar inventario | Si | No |
+| Descargar PDF (todo / empresa / selección) | Si | No |
+| Enviar PDF por email | Si | No |
 
 ---
 
