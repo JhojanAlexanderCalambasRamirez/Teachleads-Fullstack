@@ -45,70 +45,21 @@
 
     <!-- Acciones PDF / Email - contextuales -->
     <div class="row q-mb-md q-gutter-sm">
-      <q-btn-group outline>
         <q-btn
           outline
           color="secondary"
           icon="download"
           :label="selectedRows.length ? `Descargar selección (${selectedRows.length})` : 'Descargar todo'"
-          @click="handleDownloadPdf"
+          @click="() => handleDownloadPdf(selectedRows.length > 0)"
           :loading="downloadingPdf"
         />
         <q-btn
           outline
-          color="secondary"
-          icon="expand_more"
-          @click="pdfMenuOpen = true"
-        >
-          <q-menu v-model="pdfMenuOpen">
-            <q-list style="min-width: 200px">
-              <q-item clickable v-close-popup @click="handleDownloadPdf(false)">
-                <q-item-section avatar><q-icon name="download_for_offline" color="secondary" /></q-item-section>
-                <q-item-section>Descargar todo</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup @click="handleDownloadPdf(true)" :disable="!selectedRows.length">
-                <q-item-section avatar><q-icon name="check_box" color="primary" /></q-item-section>
-                <q-item-section>
-                  Solo seleccionados
-                  <q-item-label caption v-if="!selectedRows.length">Selecciona filas primero</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-      </q-btn-group>
-
-      <q-btn-group outline>
-        <q-btn
-          outline
           color="orange"
           icon="email"
-          :label="selectedRows.length ? `Enviar selección (${selectedRows.length})` : 'Enviar todo'"
-          @click="openEmailDialog(false)"
+          :label="selectedRows.length ? `Enviar selección (${selectedRows.length})` : 'Enviar todo por email'"
+          @click="() => openEmailDialog(selectedRows.length > 0)"
         />
-        <q-btn
-          outline
-          color="orange"
-          icon="expand_more"
-          @click="emailMenuOpen = true"
-        >
-          <q-menu v-model="emailMenuOpen">
-            <q-list style="min-width: 200px">
-              <q-item clickable v-close-popup @click="openEmailDialog(false)">
-                <q-item-section avatar><q-icon name="mail_outline" color="orange" /></q-item-section>
-                <q-item-section>Enviar todo por email</q-item-section>
-              </q-item>
-              <q-item clickable v-close-popup @click="openEmailDialog(true)" :disable="!selectedRows.length">
-                <q-item-section avatar><q-icon name="mark_email_read" color="primary" /></q-item-section>
-                <q-item-section>
-                  Enviar seleccionados
-                  <q-item-label caption v-if="!selectedRows.length">Selecciona filas primero</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-menu>
-        </q-btn>
-      </q-btn-group>
     </div>
 
     <!-- Tabla con selección -->
@@ -216,8 +167,6 @@ const sendingEmail = ref(false)
 const downloadingPdf = ref(false)
 const filtroEmpresa = ref<string | null>(null)
 const selectedRows = ref<InventarioItem[]>([])
-const pdfMenuOpen = ref(false)
-const emailMenuOpen = ref(false)
 
 const addForm = reactive({ empresaNit: '', productoCodigo: '', cantidad: 1 })
 const emailForm = reactive({ destinatario: '', soloSeleccionados: false })
