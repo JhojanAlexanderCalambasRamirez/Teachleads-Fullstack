@@ -51,7 +51,7 @@
         </q-form>
       </q-card-section>
 
-      <q-card-section class="text-center text-caption text-grey-6 q-pt-none">
+      <q-card-section class="text-center text-caption text-grey-8 q-pt-none">
         Admin: admin@techleads.com / admin123<br />
         Externo: externo@techleads.com / externo123
       </q-card-section>

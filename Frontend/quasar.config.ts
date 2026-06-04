@@ -6,7 +6,7 @@ export default defineConfig((ctx) => {
 
     css: ['app.scss'],
 
-    extras: ['roboto-font', 'material-icons', 'mdi-v7'],
+    extras: ['roboto-font', 'material-icons'],
 
     build: {
       target: {
@@ -36,7 +36,7 @@ export default defineConfig((ctx) => {
       plugins: ['Notify', 'Dialog', 'Loading', 'LocalStorage']
     },
 
-    animations: 'all',
+    animations: [],
 
     ssr: { pwa: false, prodPort: 3000, middlewares: ['render'] },
     pwa: {
