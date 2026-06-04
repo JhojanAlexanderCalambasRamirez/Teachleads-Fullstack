@@ -1,6 +1,11 @@
 package com.techleads.infrastructure.web.controller;
 
 import com.techleads.application.dto.response.ApiResponse;
+import com.techleads.domain.exception.EmpresaNotFoundException;
+import com.techleads.domain.exception.InventarioItemNotFoundException;
+import com.techleads.domain.exception.NitDuplicadoException;
+import com.techleads.domain.exception.ProductoCodigoDuplicadoException;
+import com.techleads.domain.exception.ProductoNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,20 +14,26 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(NoSuchElementException ex) {
+    @ExceptionHandler({
+            EmpresaNotFoundException.class,
+            ProductoNotFoundException.class,
+            InventarioItemNotFoundException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex) {
+    @ExceptionHandler({
+            NitDuplicadoException.class,
+            ProductoCodigoDuplicadoException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleConflict(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error(ex.getMessage()));
     }

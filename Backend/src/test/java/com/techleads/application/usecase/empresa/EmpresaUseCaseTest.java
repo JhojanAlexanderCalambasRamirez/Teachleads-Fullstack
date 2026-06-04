@@ -2,6 +2,8 @@ package com.techleads.application.usecase.empresa;
 
 import com.techleads.application.dto.request.EmpresaRequest;
 import com.techleads.application.dto.response.EmpresaResponse;
+import com.techleads.domain.exception.EmpresaNotFoundException;
+import com.techleads.domain.exception.NitDuplicadoException;
 import com.techleads.domain.model.Empresa;
 import com.techleads.domain.port.EmpresaRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -60,11 +61,11 @@ class EmpresaUseCaseTest {
     }
 
     @Test
-    void crear_debeLanzarExcepcion_cuandoNitYaExiste() {
+    void crear_debeLanzarNitDuplicadoException_cuandoNitYaExiste() {
         when(empresaRepository.existsByNit("123456789")).thenReturn(true);
 
         assertThatThrownBy(() -> empresaUseCase.crear(request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NitDuplicadoException.class)
                 .hasMessageContaining("123456789");
 
         verify(empresaRepository, never()).save(any());
@@ -81,19 +82,20 @@ class EmpresaUseCaseTest {
     }
 
     @Test
-    void obtenerPorNit_debeLanzarExcepcion_cuandoNoExiste() {
+    void obtenerPorNit_debeLanzarEmpresaNotFoundException_cuandoNoExiste() {
         when(empresaRepository.findByNit("999")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> empresaUseCase.obtenerPorNit("999"))
-                .isInstanceOf(NoSuchElementException.class);
+                .isInstanceOf(EmpresaNotFoundException.class)
+                .hasMessageContaining("999");
     }
 
     @Test
-    void eliminar_debeLanzarExcepcion_cuandoNoExiste() {
+    void eliminar_debeLanzarEmpresaNotFoundException_cuandoNoExiste() {
         when(empresaRepository.existsByNit("999")).thenReturn(false);
 
         assertThatThrownBy(() -> empresaUseCase.eliminar("999"))
-                .isInstanceOf(NoSuchElementException.class);
+                .isInstanceOf(EmpresaNotFoundException.class);
 
         verify(empresaRepository, never()).deleteByNit(any());
     }

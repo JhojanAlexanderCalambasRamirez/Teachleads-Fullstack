@@ -2,15 +2,17 @@ package com.techleads.application.usecase.inventario;
 
 import com.techleads.application.dto.request.InventarioRequest;
 import com.techleads.application.dto.response.InventarioResponse;
+import com.techleads.domain.exception.EmpresaNotFoundException;
+import com.techleads.domain.exception.ProductoNotFoundException;
 import com.techleads.domain.model.InventarioItem;
 import com.techleads.domain.port.EmpresaRepository;
 import com.techleads.domain.port.InventarioRepository;
 import com.techleads.domain.port.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,11 +23,12 @@ public class InventarioUseCase {
     private final EmpresaRepository empresaRepository;
     private final ProductoRepository productoRepository;
 
+    @Transactional
     public InventarioResponse agregar(InventarioRequest request) {
         empresaRepository.findByNit(request.getEmpresaNit())
-                .orElseThrow(() -> new NoSuchElementException("Empresa no encontrada: " + request.getEmpresaNit()));
+                .orElseThrow(() -> new EmpresaNotFoundException(request.getEmpresaNit()));
         productoRepository.findByCodigo(request.getProductoCodigo())
-                .orElseThrow(() -> new NoSuchElementException("Producto no encontrado: " + request.getProductoCodigo()));
+                .orElseThrow(() -> new ProductoNotFoundException(request.getProductoCodigo()));
 
         InventarioItem item = inventarioRepository
                 .findByEmpresaNitAndProductoCodigo(request.getEmpresaNit(), request.getProductoCodigo())
@@ -47,24 +50,28 @@ public class InventarioUseCase {
         return toResponse(inventarioRepository.save(item));
     }
 
+    @Transactional(readOnly = true)
     public List<InventarioResponse> listar() {
         return inventarioRepository.findAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<InventarioResponse> listarPorEmpresa(String empresaNit) {
         return inventarioRepository.findByEmpresaNit(empresaNit).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<InventarioResponse> listarPorIds(List<Long> ids) {
         return inventarioRepository.findByIds(ids).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void eliminar(Long id) {
         inventarioRepository.deleteById(id);
     }

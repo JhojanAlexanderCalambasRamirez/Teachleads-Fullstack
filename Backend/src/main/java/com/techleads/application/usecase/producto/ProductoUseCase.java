@@ -4,6 +4,9 @@ import com.techleads.application.dto.request.ProductoRequest;
 import com.techleads.application.dto.response.CategoriaResponse;
 import com.techleads.application.dto.response.ProductoPrecioResponse;
 import com.techleads.application.dto.response.ProductoResponse;
+import com.techleads.domain.exception.EmpresaNotFoundException;
+import com.techleads.domain.exception.ProductoCodigoDuplicadoException;
+import com.techleads.domain.exception.ProductoNotFoundException;
 import com.techleads.domain.model.Categoria;
 import com.techleads.domain.model.Producto;
 import com.techleads.domain.model.ProductoPrecio;
@@ -12,10 +15,10 @@ import com.techleads.domain.port.EmpresaRepository;
 import com.techleads.domain.port.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,49 +29,54 @@ public class ProductoUseCase {
     private final EmpresaRepository empresaRepository;
     private final CategoriaRepository categoriaRepository;
 
+    @Transactional
     public ProductoResponse crear(ProductoRequest request) {
         if (productoRepository.existsByCodigo(request.getCodigo())) {
-            throw new IllegalArgumentException("Ya existe producto con código: " + request.getCodigo());
+            throw new ProductoCodigoDuplicadoException(request.getCodigo());
         }
         empresaRepository.findByNit(request.getEmpresaNit())
-                .orElseThrow(() -> new NoSuchElementException("Empresa no encontrada: " + request.getEmpresaNit()));
+                .orElseThrow(() -> new EmpresaNotFoundException(request.getEmpresaNit()));
 
-        Producto saved = productoRepository.save(toModel(request));
-        return toResponse(saved, request.getEmpresaNit());
+        return toResponse(productoRepository.save(toModel(request)), request.getEmpresaNit());
     }
 
+    @Transactional
     public ProductoResponse actualizar(String codigo, ProductoRequest request) {
         productoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new NoSuchElementException("Producto no encontrado: " + codigo));
+                .orElseThrow(() -> new ProductoNotFoundException(codigo));
         empresaRepository.findByNit(request.getEmpresaNit())
-                .orElseThrow(() -> new NoSuchElementException("Empresa no encontrada: " + request.getEmpresaNit()));
+                .orElseThrow(() -> new EmpresaNotFoundException(request.getEmpresaNit()));
 
-        Producto updated = productoRepository.save(
-                toModel(request).toBuilder().codigo(codigo).build());
-        return toResponse(updated, request.getEmpresaNit());
+        return toResponse(
+                productoRepository.save(toModel(request).toBuilder().codigo(codigo).build()),
+                request.getEmpresaNit());
     }
 
+    @Transactional(readOnly = true)
     public ProductoResponse obtenerPorCodigo(String codigo) {
         Producto p = productoRepository.findByCodigo(codigo)
-                .orElseThrow(() -> new NoSuchElementException("Producto no encontrado: " + codigo));
+                .orElseThrow(() -> new ProductoNotFoundException(codigo));
         return toResponse(p, p.getEmpresaNit());
     }
 
+    @Transactional(readOnly = true)
     public List<ProductoResponse> listar() {
         return productoRepository.findAll().stream()
                 .map(p -> toResponse(p, p.getEmpresaNit()))
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ProductoResponse> listarPorEmpresa(String empresaNit) {
         return productoRepository.findByEmpresaNit(empresaNit).stream()
                 .map(p -> toResponse(p, empresaNit))
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void eliminar(String codigo) {
         if (!productoRepository.existsByCodigo(codigo)) {
-            throw new NoSuchElementException("Producto no encontrado: " + codigo);
+            throw new ProductoNotFoundException(codigo);
         }
         productoRepository.deleteByCodigo(codigo);
     }

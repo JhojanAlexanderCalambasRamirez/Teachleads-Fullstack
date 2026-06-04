@@ -1,6 +1,6 @@
 # Prueba Técnica TechLeads — Full Stack Java Spring Boot + Vue.js
 
-Sistema de gestión empresarial con inventario, productos multi-moneda y envío de reportes PDF por email.
+Sistema de gestión empresarial con inventario, productos multi-moneda y exportación de reportes PDF por email.
 
 ---
 
@@ -18,13 +18,16 @@ Sistema de gestión empresarial con inventario, productos multi-moneda y envío 
 | Capa | Tecnología |
 |------|-----------|
 | Backend | Java 17, Spring Boot 3.2, Spring Security, Hibernate |
-| Base de datos | PostgreSQL 15, Flyway (migraciones) |
-| Autenticación | JWT + BCrypt |
+| Base de datos | PostgreSQL 15, Flyway (migraciones versionadas) |
+| Autenticación | JWT (JJWT 0.12) + BCrypt strength 12 |
+| Transacciones | `@Transactional` / `@Transactional(readOnly=true)` |
+| Excepciones | Custom domain exceptions + `@RestControllerAdvice` |
 | PDF | iText 8 |
 | Email | JavaMailSender (Gmail SMTP) |
 | Frontend | Vue 3, Quasar Framework 2, Pinia, TypeScript |
-| HTTP Client | Axios |
-| Tests | JUnit 5, Mockito |
+| Arquitectura UI | Atomic Design (molecules + organisms + pages) |
+| HTTP Client | Axios (interceptores JWT + 401 handler) |
+| Tests | JUnit 5, Mockito — 18 casos en 4 clases |
 
 ---
 
@@ -40,53 +43,35 @@ Sistema de gestión empresarial con inventario, productos multi-moneda y envío 
 | npm | 9 | `npm -v` |
 | PostgreSQL | 14 | PgAdmin4 o `psql --version` |
 
-### Opción B — Con Docker (solo para la base de datos)
+### Opción B — Con Docker (base de datos)
 
-| Herramienta | Versión mínima |
-|-------------|---------------|
-| Docker Desktop | 24 |
-| Java JDK | 17 |
-| Maven | 3.8 |
-| Node.js | 20 |
+```bash
+docker-compose up -d
+```
 
 ---
 
 ## Instalación y ejecución
 
-### 1. Clonar el repositorio
+### 1. Clonar
 
-**Mac / Linux:**
 ```bash
-git clone https://github.com/JhojanAlexanderCalambasRamirez/Techleads-Fullstack.git
-cd prueba-tecnica-TechLeads
+git clone https://github.com/JhojanAlexanderCalambasRamirez/Teachleads-Fullstack.git
+cd prueba-tecnica-TeachLeads
 ```
 
-**Windows (PowerShell):**
-```powershell
-git clone https://github.com/JhojanAlexanderCalambasRamirez/Techleads-Fullstack.git
-cd prueba-tecnica-TechLeads
-```
+### 2. Base de datos
 
----
+**PgAdmin4:** crear base de datos `techleads_db`
 
-### 2. Base de datos PostgreSQL
-
-#### Opción A — PgAdmin4 (manual)
-1. Abre PgAdmin4
-2. Click derecho en **Databases** → **Create** → **Database**
-3. Nombre: `techleads_db` → **Save**
-
-#### Opción B — Docker (recomendado, cross-platform)
+**Docker:**
 ```bash
 docker-compose up -d
 ```
-Esto levanta PostgreSQL 15 en el puerto 5432 automáticamente.
 
----
+### 3. Variables de entorno
 
-### 3. Configurar variables de entorno
-
-**Mac / Linux** — en la terminal antes de arrancar el backend:
+**Mac / Linux:**
 ```bash
 export DB_USERNAME=postgres
 export DB_PASSWORD=postgres
@@ -102,82 +87,36 @@ $env:MAIL_USERNAME="tu_correo@gmail.com"
 $env:MAIL_PASSWORD="tu_app_password_16_letras"
 ```
 
-**Windows (CMD):**
-```cmd
-set DB_USERNAME=postgres
-set DB_PASSWORD=postgres
-set MAIL_USERNAME=tu_correo@gmail.com
-set MAIL_PASSWORD=tu_app_password_16_letras
-```
-
-> **Cómo obtener App Password de Gmail:**
-> 1. https://myaccount.google.com/apppasswords
-> 2. Requiere verificación en 2 pasos activa
-> 3. Generar contraseña para "Correo" → copiar 16 letras sin espacios
-
----
+> **App Password Gmail:** https://myaccount.google.com/apppasswords — requiere verificación en 2 pasos.
 
 ### 4. Backend
 
-**Mac / Linux:**
 ```bash
 cd Backend
 mvn spring-boot:run
 ```
-
-**Windows (PowerShell / CMD):**
-```powershell
-cd Backend
-mvn spring-boot:run
-```
-
-Flyway ejecuta las migraciones automáticamente al iniciar.
-Espera: `Started PruebaTecnicaApplication`
-
-Backend disponible en: **http://localhost:8080**
-
----
+Espera: `Started PruebaTecnicaApplication` — backend en **http://localhost:8080**
 
 ### 5. Frontend
 
-**Mac / Linux:**
 ```bash
 cd Frontend
 npm install
 npm run dev
 ```
-
-**Windows (PowerShell / CMD):**
-```powershell
-cd Frontend
-npm install
-npm run dev
-```
-
-Frontend disponible en: **http://localhost:9000**
-
-> El proxy del devServer redirige `/api` → `http://localhost:8080` automáticamente.
+Frontend en **http://localhost:9000** — proxy `/api` → `localhost:8080` configurado.
 
 ---
 
-## Matar procesos (si hay conflicto de puertos)
+## Matar procesos
 
 **Mac / Linux:**
 ```bash
-kill -9 $(lsof -ti :8080)   # matar backend
-kill -9 $(lsof -ti :9000)   # matar frontend
+kill -9 $(lsof -ti :8080)
+kill -9 $(lsof -ti :9000)
 ```
 
-**Windows (PowerShell):**
-```powershell
-# Ver qué usa el puerto
-netstat -ano | findstr :8080
-
-# Matar por PID (reemplaza 1234 con el PID real)
-taskkill /PID 1234 /F
-```
-
-**Windows (un solo comando):**
+**Windows:**
 ```powershell
 $pid8080 = (netstat -ano | findstr :8080 | Select-Object -First 1).Split()[-1]
 if ($pid8080) { taskkill /PID $pid8080 /F }
@@ -190,21 +129,75 @@ if ($pid8080) { taskkill /PID $pid8080 /F }
 ```
 Backend/src/main/java/com/techleads/
 ├── domain/
-│   ├── model/          <- Entidades puras Java (sin dependencias de framework)
-│   └── port/           <- Interfaces de repositorios (contratos)
+│   ├── model/          <- Entidades puras Java (0 imports de Spring)
+│   ├── port/           <- Interfaces de repositorios (contratos)
+│   └── exception/      <- Custom exceptions de dominio (NEW)
 ├── application/
-│   ├── usecase/        <- Lógica de negocio por dominio
-│   └── dto/            <- Request / Response DTOs
+│   ├── usecase/        <- Casos de uso con @Transactional (NEW)
+│   └── dto/            <- Request / Response DTOs con validaciones Jakarta
 └── infrastructure/
-    ├── persistence/    <- JPA entities + Spring Data + adapters
-    ├── web/            <- REST controllers + exception handler
-    ├── security/       <- JWT filter + Spring Security
-    ├── pdf/            <- Generación PDF (iText 8)
-    ├── email/          <- Envío email (JavaMailSender)
-    └── config/         <- Beans de configuración
+    ├── persistence/    <- JPA entities + Spring Data + adapters (Ports & Adapters)
+    ├── web/            <- REST controllers + GlobalExceptionHandler
+    ├── security/       <- JWT filter + Spring Security config
+    ├── pdf/            <- Generación PDF en memoria (iText 8)
+    ├── email/          <- Envío email con adjunto (JavaMailSender)
+    └── config/         <- SecurityConfig, CORS, BCryptPasswordEncoder
 ```
 
-**Principios aplicados:** SOLID, inversión de dependencias (domain sin dependencias de Spring/JPA), alta cohesión, bajo acoplamiento.
+### Principios SOLID aplicados
+
+| Principio | Dónde se ve |
+|---|---|
+| **S** — Single Responsibility | Cada use case gestiona un dominio. `PdfService` solo genera PDF. `EmailService` solo envía. |
+| **O** — Open/Closed | Ports como interfaces — nueva implementación sin tocar use cases |
+| **L** — Liskov | `EmpresaRepositoryAdapter implements EmpresaRepository` — sustituible |
+| **I** — Interface Segregation | Cada port solo expone los métodos que necesita su dominio |
+| **D** — Dependency Inversion | Use cases dependen de interfaces (`domain/port`), no de JPA concreto |
+
+---
+
+## Custom Exceptions (domain/exception/)
+
+```
+EmpresaNotFoundException.java         → HTTP 404
+NitDuplicadoException.java            → HTTP 409
+ProductoNotFoundException.java        → HTTP 404
+ProductoCodigoDuplicadoException.java → HTTP 409
+InventarioItemNotFoundException.java  → HTTP 404
+```
+
+`GlobalExceptionHandler` mapea cada excepción de dominio a su HTTP status con `@ExceptionHandler` por tipo. Sin try-catch en lógica de negocio.
+
+---
+
+## Transacciones
+
+Todos los use cases usan `@Transactional` de Spring:
+
+```java
+@Transactional                    // operaciones write — garantiza rollback
+@Transactional(readOnly = true)   // operaciones read — optimiza connection pool
+```
+
+16 anotaciones en `EmpresaUseCase`, `ProductoUseCase` e `InventarioUseCase`.
+
+---
+
+## Atomic Design (Frontend)
+
+```
+Frontend/src/components/
+├── empresa/
+│   ├── EmpresaTable.vue        <- organism: tabla con eventos edit/delete
+│   └── EmpresaFormDialog.vue   <- molecule: formulario crear/editar reutilizable
+├── inventario/
+│   ├── AddInventarioDialog.vue <- molecule: formulario agregar stock
+│   └── SendEmailDialog.vue     <- molecule: dialog envío con contexto visual
+└── shared/
+    └── PageHeader.vue          <- atom: título + slot para acciones
+```
+
+`EmpresaPage.vue` pasó de 156 líneas monolíticas a 70 líneas que solo orquestan componentes.
 
 ---
 
@@ -212,15 +205,15 @@ Backend/src/main/java/com/techleads/
 
 ```
 empresa          (nit PK, nombre, direccion, telefono)
-categoria        (id PK, nombre)
+categoria        (id PK, nombre UNIQUE)
 producto         (codigo PK, nombre, caracteristicas, empresa_nit FK)
 producto_precio  (id PK, producto_codigo FK, moneda, precio)     <- multi-divisa
 producto_categoria (producto_codigo FK, categoria_id FK)         <- N:M
-cliente          (id PK, nombre, correo)
+cliente          (id PK, nombre, correo UNIQUE)
 orden            (id PK, cliente_id FK, fecha, estado)
 orden_producto   (orden_id FK, producto_codigo FK, cantidad)     <- N:M
 inventario       (id PK, empresa_nit FK, producto_codigo FK, cantidad)
-usuario          (id PK, correo, password_hash, nombre, rol, activo)
+usuario          (id PK, correo UNIQUE, password_hash, nombre, rol, activo)
 ```
 
 ### Tablas con UI vs solo modelo ER
@@ -228,17 +221,17 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 | Tabla | UI | Nota |
 |---|---|---|
 | `empresa` | ✅ | CRUD completo (ADMIN), solo lectura (EXTERNO) |
-| `producto` | ✅ | CRUD completo (ADMIN) |
+| `producto` | ✅ | CRUD completo (ADMIN) con precios multi-moneda |
 | `producto_precio` | ✅ | Gestionada dentro del formulario de Productos |
-| `producto_categoria` | ✅ | Gestionada dentro del formulario de Productos |
-| `categoria` | ✅ | Pre-seeded, usable como selector en Productos |
-| `inventario` | ✅ | CRUD + exportación PDF/email (ADMIN) |
-| `usuario` | ✅ | Pre-seeded (admin y externo) |
-| `cliente` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
-| `orden` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
-| `orden_producto` | ❌ | Requerida en modelo ER por PDF punto f), sin UI |
+| `producto_categoria` | ✅ | Selector múltiple en formulario de Productos |
+| `categoria` | ✅ | Pre-seeded, selector en Productos |
+| `inventario` | ✅ | CRUD + PDF/email granular (ADMIN) |
+| `usuario` | ✅ | Pre-seeded — 2 usuarios (admin y externo) |
+| `cliente` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
+| `orden` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
+| `orden_producto` | ❌ | Modelo ER requerido por PDF punto f), sin UI |
 
-> `cliente`, `orden` y `orden_producto` existen en el esquema porque el PDF punto f) las exige en el modelo entidad-relación. No hay vistas asociadas porque ninguno de los puntos a-d del PDF las menciona como funcionalidad requerida.
+> Las tablas `cliente`, `orden` y `orden_producto` cumplen el requisito del modelo ER del punto f). No tienen UI porque ninguno de los puntos a-d del PDF define vistas para ellas.
 
 ---
 
@@ -262,6 +255,7 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 | Método | Endpoint | Acceso |
 |--------|----------|--------|
 | GET | `/api/productos?empresaNit=` | Autenticado |
+| GET | `/api/productos/{codigo}` | Autenticado |
 | POST | `/api/productos` | ADMIN |
 | PUT | `/api/productos/{codigo}` | ADMIN |
 | DELETE | `/api/productos/{codigo}` | ADMIN |
@@ -270,15 +264,12 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 | Método | Endpoint | Parámetros | Acceso |
 |--------|----------|------------|--------|
 | GET | `/api/inventario` | `?empresaNit=` (opcional) | ADMIN |
-| POST | `/api/inventario` | body: `{empresaNit, productoCodigo, cantidad}` | ADMIN |
+| POST | `/api/inventario` | `{empresaNit, productoCodigo, cantidad}` | ADMIN |
 | DELETE | `/api/inventario/{id}` | — | ADMIN |
-| GET | `/api/inventario/pdf` | `?ids=1,2,3` o `?empresaNit=` (opcionales) | ADMIN |
-| POST | `/api/inventario/enviar-pdf` | body: `{destinatario, ids?, empresaNit?}` | ADMIN |
+| GET | `/api/inventario/pdf` | `?ids=1,2,3` o `?empresaNit=` | ADMIN |
+| POST | `/api/inventario/enviar-pdf` | `{destinatario, ids?, empresaNit?}` | ADMIN |
 
-**Lógica de filtrado PDF/Email (prioridad):**
-1. Si `ids` presentes → usa solo esos registros
-2. Si `empresaNit` presente → filtra por empresa
-3. Sin parámetros → exporta todo el inventario
+**Lógica de filtrado (prioridad):** `ids` > `empresaNit` > todo el inventario
 
 ### Categorías
 | Método | Endpoint | Acceso |
@@ -292,30 +283,41 @@ usuario          (id PK, correo, password_hash, nombre, rol, activo)
 
 | Funcionalidad | ADMIN | EXTERNO |
 |--------------|:-----:|:-------:|
-| Ver empresas | Si | Si |
-| Crear / editar / eliminar empresa | Si | No |
-| Gestionar productos | Si | No |
-| Gestionar inventario | Si | No |
-| Descargar PDF inventario | Si | No |
-| Enviar PDF por email | Si | No |
+| Ver empresas | ✅ | ✅ |
+| Crear / editar / eliminar empresa | ✅ | ❌ |
+| Gestionar productos | ✅ | ❌ |
+| Gestionar inventario | ✅ | ❌ |
+| Descargar PDF (todo / empresa / selección) | ✅ | ❌ |
+| Enviar PDF por email | ✅ | ❌ |
 
 ---
 
-## Pruebas unitarias
+## Pruebas unitarias — 18 casos
 
 ```bash
 cd Backend
 
-# Ejecutar todos los tests
+# Todos
 mvn test
 
-# Test específico
-mvn test -Dtest=EmpresaUseCaseTest
-mvn test -Dtest=AuthUseCaseTest
-mvn test -Dtest=InventarioUseCaseTest
+# Por clase
+mvn test -Dtest=EmpresaUseCaseTest      # 5 casos
+mvn test -Dtest=AuthUseCaseTest         # 4 casos
+mvn test -Dtest=InventarioUseCaseTest   # 3 casos
+mvn test -Dtest=ProductoUseCaseTest     # 6 casos
+
+# Con output detallado
+mvn test -Dsurefire.useFile=false
 ```
 
-Cobertura: 12 casos de prueba en 3 clases (use cases: Empresa, Auth, Inventario).
+| Clase | Casos | Qué cubre |
+|---|---|---|
+| `EmpresaUseCaseTest` | 5 | CRUD empresa, NitDuplicadoException, EmpresaNotFoundException |
+| `AuthUseCaseTest` | 4 | Login, credenciales inválidas, usuario inactivo |
+| `InventarioUseCaseTest` | 3 | Crear, acumular cantidad, lista vacía |
+| `ProductoUseCaseTest` | 6 | CRUD producto, ProductoCodigoDuplicadoException, EmpresaNotFoundException |
+
+Todas son **pruebas unitarias puras con Mockito** — sin Spring context, sin BD, en ~50ms.
 
 ---
 
@@ -332,7 +334,7 @@ java -jar target/prueba-tecnica-1.0.0.jar
 ```bash
 cd Frontend
 npm run build
-# Artefactos en: Frontend/dist/spa/
+# Artefactos: Frontend/dist/spa/
 ```
 
 ---
@@ -341,11 +343,13 @@ npm run build
 
 | Decisión | Justificación |
 |----------|--------------|
-| Clean Architecture | Domain completamente aislado, testeable sin BD |
-| JWT stateless | Sin sesiones en servidor, escalable horizontalmente |
-| Flyway | Migraciones versionadas, reproducibles en cualquier entorno |
-| BCrypt strength 12 | Balance seguridad / performance en autenticación |
-| Tabla `producto_precio` normalizada | Soporte N monedas por producto sin columnas dinámicas |
-| Pinia como store | Reactividad granular, mejor DX vs Vuex en Vue 3 |
-| Proxy devServer | Frontend desacoplado del backend, sin CORS en desarrollo |
-| Selección granular en inventario | PDF/email con selección de filas individuales, por empresa, o todo |
+| Clean Architecture | Domain 100% aislado — testeable sin Spring, sin BD |
+| Custom exceptions en `domain/exception/` | Semántica de error en el dominio, no en HTTP |
+| `@Transactional(readOnly=true)` en reads | Optimiza connection pool — Hibernate no hace flush ni tracking |
+| Atomic Design en frontend | Componentes reutilizables, páginas delgadas que orquestan |
+| JWT stateless | Escalable horizontalmente — sin estado en servidor |
+| Flyway migraciones | Schema reproducible, versionado y auditable |
+| BCrypt strength 12 | 4096 rondas — balance seguridad/performance |
+| `producto_precio` normalizada | N monedas sin columnas fijas — extensible sin ALTER TABLE |
+| Selección granular inventario | PDF/email: todo / empresa / ítems específicos con checkboxes |
+| Proxy devServer Quasar | Frontend desacoplado — sin CORS en desarrollo |
